@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+var codeTitle = map[int]string{
+	1:    "Malformed JSON Body",
+	2201: "Missing Required Attribute",
+	2202: "Requested Relationship Not Found",
+}
+
 type ErrorMessage struct {
 	Title  string `json:"title,omitempty"`
 	Detail string `json:"detail,omitempty"`
@@ -20,39 +26,22 @@ type ErrorResponse struct {
 func HandleNotFound(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	MakeErrorResponse(response, 404, request.URL.Path, 0)
+	MakeErrorResponse(response, http.StatusNotFound, request.URL.Path, 0)
 	return
 }
 
 func MakeErrorResponse(response http.ResponseWriter, status int, detail string, code int) {
-	var codeTitle map[int]string
-	codeTitle = make(map[int]string)
-	codeTitle[1] = "Malformed JSON Body"
-	codeTitle[2201] = "Missing Required Attribute"
-	codeTitle[2202] = "Requested Relationship Not Found"
-
-	var statusTitle map[int]string
-	statusTitle = make(map[int]string)
-	statusTitle[400] = "Bad Request"
-	statusTitle[401] = "Unauthorized"
-	statusTitle[404] = "Not Found"
-	statusTitle[405] = "Method Not Allowed"
-	statusTitle[406] = "Not Acceptable"
-	statusTitle[409] = "Conflict"
-	statusTitle[415] = "Unsupported Media Type"
-	statusTitle[422] = "Unprocessable Entity"
-	statusTitle[500] = "Internal Server Error"
-
-	var title string
 
 	// Get Title
+	var title string
 	if code == 0 { // code 0 means no code
-		title = statusTitle[status]
+		title = http.StatusText(status)
 	} else {
 		title = codeTitle[code]
 	}
 
 	// Send Response
+	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(status)
 
 	m := ErrorResponse{
@@ -70,8 +59,7 @@ func MakeErrorResponse(response http.ResponseWriter, status int, detail string, 
 }
 
 func HandleNotImplemented(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
 
-	MakeErrorResponse(response, 405, request.Method, 0)
+	MakeErrorResponse(response, http.StatusMethodNotAllowed, request.Method, 0)
 	return
 }

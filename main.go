@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"./models"
+	"./oauth"
 	"./web"
 
 	"github.com/gorilla/mux"
@@ -27,6 +27,9 @@ func main() {
 	models.InitDB(config.DBEngine)
 	defer models.CloseDB()
 
+	// Init Oauth
+	oauth.InitOath(config.RedisAddr)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/envelope/{messageId}", web.HandleNotImplemented)
 	r.HandleFunc("/envelope", web.HandleNotImplemented)
@@ -34,8 +37,11 @@ func main() {
 	// Meow
 	r.HandleFunc("/meow", web.HandleMeow)
 
-	// Users
-	r.HandleFunc("/meow", web.HandleMeow)
+	// Oauth
+	r.HandleFunc("/oauth/auth", oauth.HandleAuth)
+	r.HandleFunc("/oauth/authorize", oauth.HandleAuthorize)
+	r.HandleFunc("/oauth/login", oauth.HandleLogin)
+	r.HandleFunc("/oauth/token", oauth.HandleToken)
 
 	// 404 handler
 	r.PathPrefix("/").HandlerFunc(web.HandleNotFound)
@@ -45,7 +51,7 @@ func main() {
 	// Wait for SIGINT and SIGTERM (HIT CTRL-C)
 	nch := make(chan os.Signal)
 	signal.Notify(nch, syscall.SIGINT, syscall.SIGTERM)
-	log.Println(<-nch)
+	logger.Infof("%s", <-nch)
 
 	logger.Infof("Done!")
 }

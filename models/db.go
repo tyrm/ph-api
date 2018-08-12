@@ -37,7 +37,7 @@ func DecodeEngine(engine string) (dialect string, args string) {
 }
 
 func InitDB(connectionString string) {
-	newLogger :=  loggo.GetLogger("mail.models")
+	newLogger :=  loggo.GetLogger("puphaus.models")
 	logger = &newLogger
 
 	var err error
