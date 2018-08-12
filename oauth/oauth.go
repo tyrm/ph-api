@@ -10,7 +10,6 @@ import (
 	"gopkg.in/oauth2.v3/manage"
 	omodels "gopkg.in/oauth2.v3/models"
 	"gopkg.in/oauth2.v3/server"
-	"gopkg.in/oauth2.v3/store"
 	"gopkg.in/session.v1"
 )
 
@@ -33,11 +32,16 @@ func InitOath(reddisAddr string) {
 		Addr: reddisAddr,
 	}))
 
-	clientStore := store.NewClientStore()
+	clientStore := NewClientStore()
 	clientStore.Set("222222", &omodels.Client{
 		ID:     "222222",
 		Secret: "22222222",
 		Domain: "http://localhost:9094",
+	})
+	clientStore.Set("postman", &omodels.Client{
+		ID:     "postman",
+		Secret: "postman",
+		Domain: "https://www.getpostman.com/oauth2/callback",
 	})
 	manager.MapClientStorage(clientStore)
 

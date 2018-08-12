@@ -41,6 +41,8 @@ func InitDB(connectionString string) {
 	logger = &newLogger
 
 	var err error
+
+
 	dialect, dbArgs := DecodeEngine(connectionString)
 	db, err = gorm.Open(dialect, dbArgs)
 	if err != nil {
@@ -52,8 +54,9 @@ func InitDB(connectionString string) {
 		return "api_" + defaultTableName;
 	}
 
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Client{})
 	db.Model(&User{}).AddUniqueIndex("uidx_api_users_username_key", "lower(username)")
+	db.Model(&Client{}).AddUniqueIndex("uidx_api_client_cid_key", "c_id")
 
 	logger.Infof("Connected to %s database", dialect)
 
