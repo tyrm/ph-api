@@ -49,7 +49,9 @@ func main() {
 	rOauth := r.PathPrefix("/oauth").Subrouter()
 	rOauth.HandleFunc("/auth", oauth.HandleAuth)
 	rOauth.HandleFunc("/authorize", oauth.HandleAuthorize)
+	rOauth.HandleFunc("/haus.svg", oauth.HandleSVGHaus)
 	rOauth.HandleFunc("/login", oauth.HandleLogin)
+	rOauth.HandleFunc("/pup.svg", oauth.HandleSVGPup)
 	rOauth.HandleFunc("/token", oauth.HandleToken)
 
 	r.HandleFunc("/oauth/token", oauth.HandleToken)

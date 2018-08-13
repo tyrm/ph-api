@@ -20,6 +20,10 @@ const authPageTemplate string = `<!doctype html>
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <style>
+          a, a:hover, a:active {
+            color: black;
+          }
+
           #loginbox {
             width: 300px;
 
@@ -72,13 +76,20 @@ const authPageTemplate string = `<!doctype html>
             top: 10px;
             width: 75px;
           }
+
+          div.ref {
+            font-size: 12px;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+          }
         </style>
     </head>
     <body>
         <div id='loginbox'>
           <div class="logo">
-            <img src="https://o.pup.haus/public/images/noun_134522.svg" class="pup" />
-            <img src="https://o.pup.haus/public/images/noun_8503.svg" class="haus" />
+            <img src="/oauth/pup.svg" class="pup" />
+            <img src="/oauth/haus.svg" class="haus" />
           </div>
 
           <form action="" method="POST">
@@ -94,6 +105,10 @@ const authPageTemplate string = `<!doctype html>
               </tr>
             </table>
           </form>
+        </div>
+
+        <div class="ref">
+    	  art by <a href="https://thenounproject.com/bonste/">Stefania Bonacasa</a> and <a href="https://thenounproject.com/bjorna1/">Björn Andersson</a> from the Noun Project
         </div>
     </body>
 </html>
