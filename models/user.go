@@ -11,9 +11,8 @@ type User struct {
 	gorm.Model
 
 	Username  string  `gorm:"not null",json:"username"`
-	Password  string  `json:"password"`
+	Password  string  `json:"-"`
 }
-
 
 // GetID client id
 func (u *User) CheckPassword(password string) bool {
@@ -36,18 +35,13 @@ func SetUser(usr User) (user User, err error) {
 		usr.Password, _ = hashPassword(usr.Password)
 	}
 
-
-	logger.Debugf("New User: %s", usr.Username)
-
 	err = db.Create(&usr).Error
-
 	if err != nil {
 		logger.Errorf("Error creating user %s: %s", usr.Username, err)
 	}
 
 	return
 }
-
 
 func UserCount() int64 {
 	var count int64

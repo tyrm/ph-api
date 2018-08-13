@@ -32,13 +32,18 @@ func main() {
 	oauth.InitOath(config.RedisAddr)
 
 	r := mux.NewRouter()
+	r.Use(web.LoggingMiddleware)
+
 	rApi := r.PathPrefix("/api").Subrouter()
+	rApi.Use(oauth.ProtectMiddleware) // Require Valid Bearer
 
 	rApi.HandleFunc("/envelope/{messageId}", web.HandleNotImplemented)
-	rApi.HandleFunc("/envelope", web.HandleNotImplemented)
 
 	// Meow
 	rApi.HandleFunc("/meow", web.HandleMeow)
+
+	// 404 handler
+	rApi.PathPrefix("/").HandlerFunc(web.HandleNotFound)
 
 	// Oauth
 	rOauth := r.PathPrefix("/oauth").Subrouter()
@@ -50,9 +55,8 @@ func main() {
 	r.HandleFunc("/oauth/token", oauth.HandleToken)
 
 	// 404 handler
-	r.PathPrefix("/").HandlerFunc(web.HandleNotFound)
+	r.PathPrefix("/").HandlerFunc(web.HandleNotImplemented)
 
-	rApi.Use(web.LoggingMiddleware)
 
 	go http.ListenAndServe(":8080", r)
 
