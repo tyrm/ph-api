@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"../web"
 	"github.com/juju/loggo"
 	"gopkg.in/go-oauth2/redis.v1"
 	"gopkg.in/oauth2.v3/errors"
@@ -56,6 +57,20 @@ func InitOath(reddisAddr string) {
 	srv.SetResponseErrorHandler(func(re *errors.Response) {
 		logger.Errorf("Response Error: %s", re.Error.Error())
 	})
+}
+
+func HandleAuthorize(w http.ResponseWriter, r *http.Request) {
+	err := srv.HandleAuthorizeRequest(w, r)
+	if err != nil {
+		web.MakeErrorResponse(w, http.StatusBadRequest, err.Error(), 0)
+	}
+}
+
+func HandleToken(w http.ResponseWriter, r *http.Request) {
+	err := srv.HandleTokenRequest(w, r)
+	if err != nil {
+		web.MakeErrorResponse(w, http.StatusInternalServerError, err.Error(), 0)
+	}
 }
 
 func outputHTML(w http.ResponseWriter, req *http.Request, filename string) {

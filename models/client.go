@@ -33,10 +33,8 @@ func (c *Client) GetUserID() string {
 
 func GetClient(id string) (cli Client, err error) {
 	err = db.Where("c_id=?", id).First(&cli).Error
-	logger.Debugf("GetClient result: %v", cli)
-
 	if err != nil {
-		logger.Errorf("Error getting client %s: %s", id, err)
+		logger.Errorf("GetClient(%s) Error: %s", id, err)
 	}
 
 	return
@@ -51,9 +49,8 @@ func SetClient(id string, secret string, domain string, userID string) (cli Clie
 	}
 
 	err = db.Create(&newClient).Error
-
 	if err != nil {
-		logger.Errorf("Error creating client %s: %s", newClient.CID, err)
+		logger.Errorf("SetClient(%s) Error: %s", newClient.CID, err)
 	}
 
 	return

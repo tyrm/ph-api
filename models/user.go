@@ -14,6 +14,13 @@ type User struct {
 	Password  string  `json:"password"`
 }
 
+
+// GetID client id
+func (u *User) CheckPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return err == nil
+}
+
 func GetUser(username string) (user User, err error) {
 	err = db.Where("username=?", username).First(&user).Error
 
@@ -26,7 +33,7 @@ func SetUser(username string, password string) (user User, err error) {
 	if err != nil {return}
 
 	if !reBCrypt.MatchString(password) {
-		password, _ = HashPassword(password)
+		password, _ = hashPassword(password)
 	}
 
 	newUser := User{Username: username, Password: password}
@@ -50,12 +57,7 @@ func UserCount() int64 {
 	return count
 }
 
-func HashPassword(password string) (string, error) {
+func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }

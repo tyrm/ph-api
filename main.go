@@ -18,6 +18,7 @@ var logger *loggo.Logger
 
 func main() {
 	loggo.ConfigureLoggers("<root>=TRACE")
+
 	newLogger :=  loggo.GetLogger("puphaus")
 	logger = &newLogger
 
@@ -31,11 +32,12 @@ func main() {
 	oauth.InitOath(config.RedisAddr)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/envelope/{messageId}", web.HandleNotImplemented)
-	r.HandleFunc("/envelope", web.HandleNotImplemented)
+
+	r.HandleFunc("/api/envelope/{messageId}", web.HandleNotImplemented)
+	r.HandleFunc("/api/envelope", web.HandleNotImplemented)
 
 	// Meow
-	r.HandleFunc("/meow", web.HandleMeow)
+	r.HandleFunc("/api/meow", web.HandleMeow)
 
 	// Oauth
 	r.HandleFunc("/oauth/auth", oauth.HandleAuth)
@@ -45,6 +47,8 @@ func main() {
 
 	// 404 handler
 	r.PathPrefix("/").HandlerFunc(web.HandleNotFound)
+
+	r.Use(web.LoggingMiddleware)
 
 	go http.ListenAndServe(":8080", r)
 
