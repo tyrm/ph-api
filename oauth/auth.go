@@ -85,7 +85,7 @@ const authPageTemplate string = `<!doctype html>
                 <td><h1>Authorize</h1></td>
               </tr>
               <tr>
-                <td><p>The client would like to perform actions on your behalf.</p></td>
+                <td><p>{{.ApplicationName}} would like to perform actions on your behalf.</p></td>
               </tr>
               <tr>
                 <td><button type="submit" class="btn btn-default">Allow</button></td>
@@ -96,6 +96,10 @@ const authPageTemplate string = `<!doctype html>
     </body>
 </html>
 `
+
+type AuthPageData struct {
+	ApplicationName string
+}
 
 func HandleAuth(w http.ResponseWriter, r *http.Request) {
 	us, err := globalSessions.SessionStart(w, r)
@@ -109,7 +113,7 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if us.Get("ReturnUri") == nil {
-		web.MakeErrorResponse(w, http.StatusBadRequest, "Missing ReturnURI", 0)
+		web.MakeErrorResponse(w, http.StatusBadRequest, "Missing ReturnUri", 0)
 		return
 	}
 	if r.Method == "POST" {
@@ -124,10 +128,14 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	outputAuthPage(w, r)
+	returnData := us.Get("ReturnUri")
+
+	logger.Debugf("%v", returnData)
+
+	outputAuthPage(w, r, "Meow")
 }
 
-func outputAuthPage(w http.ResponseWriter, req *http.Request) {
+func outputAuthPage(w http.ResponseWriter, req *http.Request, appName string) {
 	// Load Templates
 	t := template.New("auth page")
 	t, err := t.Parse(authPageTemplate)
@@ -135,6 +143,8 @@ func outputAuthPage(w http.ResponseWriter, req *http.Request) {
 		logger.Errorf("Error parsing auth page template: %s", err)
 	}
 
-	t.Execute(w, &LoginPageData{})
+	t.Execute(w, &AuthPageData{
+		ApplicationName: appName,
+	})
 	return
 }

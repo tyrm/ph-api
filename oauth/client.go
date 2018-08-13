@@ -5,6 +5,7 @@ import (
 
 	"gopkg.in/oauth2.v3"
 )
+
 func NewClientStore() *ClientStore {
 	return &ClientStore{}
 }

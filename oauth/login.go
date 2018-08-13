@@ -3,6 +3,7 @@ package oauth
 import (
 	"html/template"
 	"net/http"
+	"regexp"
 
 	"../models"
 	"../web"
@@ -119,9 +120,20 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		r.ParseForm()
-		logger.Debugf("%v", r.Form)
+		// Check Username
+		formUsername := r.Form["username"][0]
+		reUsername, err := regexp.Compile(`^[a-zA-Z0-9_]+$`)
+		if err != nil {
+			web.MakeErrorResponse(w, http.StatusInternalServerError, err.Error(), 0)
+			return
+		}
+		if !reUsername.MatchString(formUsername) {
+			outputLoginPage(w, r, "invalid username")
+			return
+		}
 
-		user, err := models.GetUser(r.Form["username"][0])
+		// Find User
+		user, err := models.GetUser(formUsername)
 		if err == gorm.ErrRecordNotFound {
 			outputLoginPage(w, r, "username/password not recognized")
 			return
@@ -130,11 +142,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			web.MakeErrorResponse(w, http.StatusInternalServerError, err.Error(), 0)
 			return
 		}
-		if err != nil {
-			logger.Errorf("error getting user: %v", err)
-		}
-		logger.Debugf("%v", user)
 
+		// Verify Password
+		if !user.CheckPassword(r.Form["password"][0]) {
+			outputLoginPage(w, r, "username/password not recognized")
+			return
+		}
 
 		us.Set("LoggedInUserID", "000000")
 		w.Header().Set("Location", "/oauth/auth")

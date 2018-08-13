@@ -2,8 +2,8 @@ package oauth
 
 import (
 	"net/http"
-	"os"
 
+	"../models"
 	"../web"
 	"github.com/juju/loggo"
 	"gopkg.in/go-oauth2/redis.v1"
@@ -32,6 +32,9 @@ func InitOath(reddisAddr string) {
 	manager.MustTokenStorage(redis.NewTokenStore(&redis.Config{
 		Addr: reddisAddr,
 	}))
+
+	models.SetClient("222222", "22222222", "http://localhost:9094", "1")
+
 
 	clientStore := NewClientStore()
 	clientStore.Set("222222", &omodels.Client{
@@ -71,17 +74,6 @@ func HandleToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		web.MakeErrorResponse(w, http.StatusInternalServerError, err.Error(), 0)
 	}
-}
-
-func outputHTML(w http.ResponseWriter, req *http.Request, filename string) {
-	file, err := os.Open(filename)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	defer file.Close()
-	fi, _ := file.Stat()
-	http.ServeContent(w, req, file.Name(), fi.ModTime(), file)
 }
 
 func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
