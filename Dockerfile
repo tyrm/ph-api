@@ -7,4 +7,4 @@ ENV DB_ENGINE  postgresql://postgres:5432/api
 ENV REDIS_ADDR localhost:6379
 
 ADD puphaus-api /
-CMD ["/puphaus-api "]
+CMD ["/puphaus-api"]
