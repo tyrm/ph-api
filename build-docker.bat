@@ -1,0 +1,1 @@
+docker build -t tyrm/puphaus-api:latest .docker
