@@ -62,7 +62,10 @@ func InitDB(connectionString string) {
 	// Create admin if no users present
 	if uc := UserCount();uc == 0 {
 		logger.Infof("Creating admin user")
-		SetUser("admin","admin")
+		SetUser(User{
+			Username:"admin",
+			Password:"admin",
+		})
 	}
 
 	return

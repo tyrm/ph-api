@@ -27,23 +27,22 @@ func GetUser(username string) (user User, err error) {
 	return
 }
 
-func SetUser(username string, password string) (user User, err error) {
+func SetUser(usr User) (user User, err error) {
 	// Hash password if not already a bcrypt hash
 	reBCrypt, err := regexp.Compile(`^\$2[ayb]\$.{56}$`)
 	if err != nil {return}
 
-	if !reBCrypt.MatchString(password) {
-		password, _ = hashPassword(password)
+	if !reBCrypt.MatchString(usr.Password) {
+		usr.Password, _ = hashPassword(usr.Password)
 	}
 
-	newUser := User{Username: username, Password: password}
 
-	logger.Debugf("New User: %s", newUser.Username)
+	logger.Debugf("New User: %s", usr.Username)
 
-	err = db.Create(&newUser).Error
+	err = db.Create(&usr).Error
 
 	if err != nil {
-		logger.Errorf("Error creating user %s: %s", newUser.Username, err)
+		logger.Errorf("Error creating user %s: %s", usr.Username, err)
 	}
 
 	return
