@@ -56,7 +56,6 @@ func InitDB(connectionString string) {
 
 	db.AutoMigrate(&User{}, &Client{})
 	db.Model(&User{}).AddUniqueIndex("uidx_api_users_username_key", "lower(username)")
-	db.Model(&Client{}).AddUniqueIndex("uidx_api_client_cid_key", "c_id")
 
 	logger.Infof("Connected to %s database", dialect)
 

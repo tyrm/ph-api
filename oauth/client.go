@@ -28,7 +28,12 @@ func (cs *ClientStore) GetByID(id string) (cli oauth2.ClientInfo, err error) {
 
 // Set set client information
 func (cs *ClientStore) Set(id string, cli oauth2.ClientInfo) (err error) {
-	_, err = models.SetClient(id, cli.GetSecret(), cli.GetDomain(), cli.GetUserID())
+	err = models.SetClient(&models.Client{
+		ID:    id,
+		Secret: cli.GetSecret(),
+		Domain: cli.GetDomain(),
+		UserID: cli.GetUserID(),
+	})
 
 	return
 }

@@ -1,8 +1,10 @@
 package oauth
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"../models"
@@ -119,6 +121,27 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Check Client ID
+		returnUri := us.Get("ReturnUri")
+		if returnUri == nil {
+			outputLoginPage(w, r, "invalid configuration")
+			logger.Errorf("Login request contains no client data")
+			return
+		}
+
+		clientID := returnUri.(url.Values).Get("client_id")
+		_, err = models.GetClient(clientID)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				outputLoginPage(w, r, "invalid configuration")
+				logger.Errorf("Login request contains invalid client id: %s", clientID)
+				return
+			} else if err != nil {
+				web.MakeErrorResponse(w, http.StatusInternalServerError, err.Error(), 0)
+				return
+			}
+		}
+
 		r.ParseForm()
 		// Check Username
 		formUsername := r.Form["username"][0]
@@ -149,7 +172,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		us.Set("LoggedInUserID", "000000")
+		us.Set("LoggedInUserID", fmt.Sprint(user.ID))
 		w.Header().Set("Location", "/oauth/auth")
 		w.WriteHeader(http.StatusFound)
 		return

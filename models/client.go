@@ -1,19 +1,22 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import "time"
 
 type Client struct {
-	gorm.Model
-
-	CID    string `json:"id"`
-	Secret string `json:"decret"`
+	ID     string `gorm:"primary_key",json:"id"`
+	Name   string `json:"name"`
+	Secret string `json:"secret"`
 	Domain string `json:"domain"`
 	UserID string `json:"user_id"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 }
 
 // GetID client id
 func (c *Client) GetID() string {
-	return c.CID
+	return c.ID
 }
 
 // GetSecret client domain
@@ -32,7 +35,7 @@ func (c *Client) GetUserID() string {
 }
 
 func GetClient(id string) (cli Client, err error) {
-	err = db.Where("c_id=?", id).First(&cli).Error
+	err = db.Where("id=?", id).First(&cli).Error
 	if err != nil {
 		logger.Errorf("GetClient(%s) Error: %s", id, err)
 	}
@@ -40,17 +43,10 @@ func GetClient(id string) (cli Client, err error) {
 	return
 }
 
-func SetClient(id string, secret string, domain string, userID string) (cli Client, err error) {
-	newClient := Client{
-		CID:    id,
-		Secret: secret,
-		Domain: domain,
-		UserID: userID,
-	}
-
-	err = db.Create(&newClient).Error
+func SetClient(cli *Client) (err error) {
+	err = db.Create(&cli).Error
 	if err != nil {
-		logger.Errorf("SetClient(%s) Error: %s", newClient.CID, err)
+		logger.Errorf("SetClient(%s) Error: %s", cli.ID, err)
 	}
 
 	return

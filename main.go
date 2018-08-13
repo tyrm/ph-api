@@ -32,23 +32,27 @@ func main() {
 	oauth.InitOath(config.RedisAddr)
 
 	r := mux.NewRouter()
+	rApi := r.PathPrefix("/api").Subrouter()
 
-	r.HandleFunc("/api/envelope/{messageId}", web.HandleNotImplemented)
-	r.HandleFunc("/api/envelope", web.HandleNotImplemented)
+	rApi.HandleFunc("/envelope/{messageId}", web.HandleNotImplemented)
+	rApi.HandleFunc("/envelope", web.HandleNotImplemented)
 
 	// Meow
-	r.HandleFunc("/api/meow", web.HandleMeow)
+	rApi.HandleFunc("/meow", web.HandleMeow)
 
 	// Oauth
-	r.HandleFunc("/oauth/auth", oauth.HandleAuth)
-	r.HandleFunc("/oauth/authorize", oauth.HandleAuthorize)
-	r.HandleFunc("/oauth/login", oauth.HandleLogin)
+	rOauth := r.PathPrefix("/oauth").Subrouter()
+	rOauth.HandleFunc("/auth", oauth.HandleAuth)
+	rOauth.HandleFunc("/authorize", oauth.HandleAuthorize)
+	rOauth.HandleFunc("/login", oauth.HandleLogin)
+	rOauth.HandleFunc("/token", oauth.HandleToken)
+
 	r.HandleFunc("/oauth/token", oauth.HandleToken)
 
 	// 404 handler
 	r.PathPrefix("/").HandlerFunc(web.HandleNotFound)
 
-	r.Use(web.LoggingMiddleware)
+	rApi.Use(web.LoggingMiddleware)
 
 	go http.ListenAndServe(":8080", r)
 

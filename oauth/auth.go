@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"../models"
 	"../web"
+	"github.com/jinzhu/gorm"
 )
 const authPageTemplate string = `<!doctype html>
 <html class="no-js" lang="">
@@ -113,7 +115,7 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if us.Get("ReturnUri") == nil {
-		web.MakeErrorResponse(w, http.StatusBadRequest, "Missing ReturnUri", 0)
+		web.MakeErrorResponse(w, http.StatusBadRequest, "Missing client data", 0)
 		return
 	}
 	if r.Method == "POST" {
@@ -128,11 +130,19 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnData := us.Get("ReturnUri")
+	clientID := us.Get("ReturnUri").(url.Values).Get("client_id")
+	client, err := models.GetClient(clientID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			web.MakeErrorResponse(w, http.StatusForbidden, "Invalid client id", 0)
+			return
+		} else if err != nil {
+			web.MakeErrorResponse(w, 400, err.Error(), 0)
+			return
+		}
+	}
 
-	logger.Debugf("%v", returnData)
-
-	outputAuthPage(w, r, "Meow")
+	outputAuthPage(w, r,  client.Name)
 }
 
 func outputAuthPage(w http.ResponseWriter, req *http.Request, appName string) {
