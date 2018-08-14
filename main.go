@@ -28,37 +28,29 @@ func main() {
 	models.InitDB(config.DBEngine)
 	defer models.CloseDB()
 
-	// Init Oauth
-	oauth.InitOath(config.RedisAddr)
-
+	// Create Top Router
 	r := mux.NewRouter()
 	r.Use(web.LoggingMiddleware)
 
-	rApi := r.PathPrefix("/api").Subrouter()
-	rApi.Use(oauth.ProtectMiddleware) // Require Valid Bearer
-
-	rApi.HandleFunc("/envelope/{messageId}", web.HandleNotImplemented)
-
-	// Meow
-	rApi.HandleFunc("/meow", web.HandleMeow)
-
-	// 404 handler
-	rApi.PathPrefix("/").HandlerFunc(web.HandleNotFound)
-
-	// Oauth
+	// Oauth Router
+	oauth.InitOath(config.RedisAddr)
 	rOauth := r.PathPrefix("/oauth").Subrouter()
 	rOauth.HandleFunc("/auth", oauth.HandleAuth)
 	rOauth.HandleFunc("/authorize", oauth.HandleAuthorize)
-	rOauth.HandleFunc("/haus.svg", oauth.HandleSVGHaus)
+	rOauth.HandleFunc("/haus.svg", oauth.HandleSVGHaus).Methods("GET")
 	rOauth.HandleFunc("/login", oauth.HandleLogin)
-	rOauth.HandleFunc("/pup.svg", oauth.HandleSVGPup)
+	rOauth.HandleFunc("/pup.svg", oauth.HandleSVGPup).Methods("GET")
 	rOauth.HandleFunc("/token", oauth.HandleToken)
 
-	r.HandleFunc("/oauth/token", oauth.HandleToken)
+	// API Router
+	rApi := r.PathPrefix("/api").Subrouter()
+	rApi.Use(oauth.ProtectMiddleware) // Require Valid Bearer
+	rApi.HandleFunc("/meow", web.HandleMeow)
+	rApi.HandleFunc("/user/{username}", web.HandleGetUser).Methods("GET")
 
-	// 404 handler
-	r.PathPrefix("/").HandlerFunc(web.HandleNotImplemented)
-
+	// Catchall for API Router so we throw 403 for all requests to api without valid token to prevent scans
+	rApi.PathPrefix("/").HandlerFunc(web.HandleNotImplemented)
+	r.PathPrefix("/").HandlerFunc(web.HandleNotImplemented) // Top Router Catch All
 
 	go http.ListenAndServe(":8080", r)
 

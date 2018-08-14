@@ -1,6 +1,8 @@
 package oauth
 
 import (
+	"strconv"
+
 	"../models"
 
 	"gopkg.in/oauth2.v3"
@@ -28,11 +30,20 @@ func (cs *ClientStore) GetByID(id string) (cli oauth2.ClientInfo, err error) {
 
 // Set set client information
 func (cs *ClientStore) Set(id string, cli oauth2.ClientInfo) (err error) {
+	i, err := strconv.Atoi(cli.GetUserID())
+	if err != nil {
+		return
+	}
+
+	usr, err := models.GetUser(i)
+	if err != nil {
+		return
+	}
 	err = models.SetClient(&models.Client{
-		ID:    id,
+		ClientID:    id,
 		Secret: cli.GetSecret(),
 		Domain: cli.GetDomain(),
-		UserID: cli.GetUserID(),
+		User: usr,
 	})
 
 	return

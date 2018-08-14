@@ -2,16 +2,20 @@ package models
 
 import (
 	"regexp"
+	"time"
 
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	gorm.Model
+	ID        uint       `json:"id" gorm:"primary_key"`
 
-	Username  string  `gorm:"not null",json:"username"`
-	Password  string  `json:"-"`
+	Username  string     `json:"username" gorm:"not null"`
+	Password  string     `json:"-"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"-" sql:"index"`
 }
 
 // GetID client id
@@ -20,7 +24,13 @@ func (u *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-func GetUser(username string) (user User, err error) {
+func GetUser(id int) (user User, err error) {
+	err = db.Where("id=?", id).First(&user).Error
+
+	return
+}
+
+func GetUserByUsername(username string) (user User, err error) {
 	err = db.Where("username=?", username).First(&user).Error
 
 	return

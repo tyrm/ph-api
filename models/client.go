@@ -1,22 +1,28 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Client struct {
-	ID     string `gorm:"primary_key",json:"id"`
-	Name   string `json:"name"`
-	Secret string `json:"secret"`
-	Domain string `json:"domain"`
-	UserID string `json:"user_id"`
+	ID     uint          `json:"id" gorm:"primary_key"`
+	Name   string        `json:"name"`
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	ClientID string      `json:"access" gorm:"not null;unique"`
+	Secret   string      `json:"secret"`
+	Domain   string      `json:"domain"`
+	User     User        `json:"user"`
+	UserID   int         `json:"-"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"-" sql:"index"`
 }
 
 // GetID client id
 func (c *Client) GetID() string {
-	return c.ID
+	return c.ClientID
 }
 
 // GetSecret client domain
@@ -31,7 +37,7 @@ func (c *Client) GetDomain() string {
 
 // GetUserID user id
 func (c *Client) GetUserID() string {
-	return c.UserID
+	return fmt.Sprint(c.User.ID)
 }
 
 func GetClient(id string) (cli Client, err error) {
@@ -46,7 +52,7 @@ func GetClient(id string) (cli Client, err error) {
 func SetClient(cli *Client) (err error) {
 	err = db.Create(&cli).Error
 	if err != nil {
-		logger.Errorf("SetClient(%s) Error: %s", cli.ID, err)
+		logger.Errorf("SetClient(%s) Error: %s", cli.ClientID, err)
 	}
 
 	return

@@ -171,7 +171,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Find User
-		user, err := models.GetUser(formUsername)
+		user, err := models.GetUserByUsername(formUsername)
 		if err == gorm.ErrRecordNotFound {
 			outputLoginPage(w, r, "username/password not recognized")
 			return

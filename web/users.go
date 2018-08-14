@@ -18,7 +18,7 @@ type UserResponse struct {
 func HandleGetUser(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(request)
-	envelope, error := models.GetUser(vars["messageId"])
+	user, error := models.GetUserByUsername(vars["username"])
 
 	if error == gorm.ErrRecordNotFound {
 		MakeErrorResponse(response, 404, vars["messageId"], 0)
@@ -28,7 +28,7 @@ func HandleGetUser(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(envelope)
+	b, _ := json.Marshal(user)
 	fmt.Fprintf(response, "%s", b)
 
 	return

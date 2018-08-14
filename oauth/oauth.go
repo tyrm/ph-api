@@ -32,21 +32,27 @@ func InitOath(reddisAddr string) {
 		Addr: reddisAddr,
 	}))
 
-	models.SetClient(&models.Client{
-		ID:     "222222",
-		Name:   "Test Client",
-		Secret: "22222222",
-		Domain: "http://localhost:9094",
-		UserID: "1",
-	})
+	usr, err := models.GetUser(1)
 
-	models.SetClient(&models.Client{
-		ID:     "postman",
-		Name:   "Postman",
-		Secret: "postman",
-		Domain: "https://www.getpostman.com/oauth2/callback",
-		UserID: "1",
-	})
+	if err == nil {
+
+		models.SetClient(&models.Client{
+			ClientID:     "222222",
+			Name:   "Test Client",
+			Secret: "22222222",
+			Domain: "http://localhost:9094",
+			User: usr,
+		})
+
+		models.SetClient(&models.Client{
+			ClientID:     "postman",
+			Name:   "Postman",
+			Secret: "postman",
+			Domain: "https://www.getpostman.com/oauth2/callback",
+			User: usr,
+		})
+
+	}
 
 	clientStore := NewClientStore()
 	manager.MapClientStorage(clientStore)
