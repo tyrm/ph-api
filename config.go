@@ -6,10 +6,12 @@ import (
 )
 
 type Config struct {
-	DBEngine       string
+	DBEngine        string
 
-	RedisAddr      string
-	RedisPassword  string
+	HTTPCorsOrigin  string
+
+	RedisAddr       string
+	RedisPassword   string
 }
 
 func CollectConfig() (config Config) {
@@ -20,6 +22,9 @@ func CollectConfig() (config Config) {
 	if config.DBEngine == "" {
 		missingEnv = append(missingEnv, "DB_ENGINE")
 	}
+
+	// HTTP_CORS_ORIGIN
+	config.HTTPCorsOrigin = os.Getenv("HTTP_CORS_ORIGIN")
 
 	// REDIS_ADDR
 	var envRedisAddress string = os.Getenv("REDIS_ADDR")

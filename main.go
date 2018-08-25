@@ -32,6 +32,17 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(web.LoggingMiddleware)
 
+	if config.HTTPCorsOrigin != "" {
+		logger.Infof("CORS origin found, adding 'Access-Control-Allow-Origin' header.")
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Access-Control-Allow-Origin", config.HTTPCorsOrigin)
+
+				next.ServeHTTP(w, r)
+			})
+		})
+	}
+
 	// Oauth Router
 	oauth.InitOath(config.RedisAddr)
 	rOauth := r.PathPrefix("/oauth").Subrouter()
