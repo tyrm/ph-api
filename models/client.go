@@ -41,7 +41,7 @@ func (c *Client) GetUserID() string {
 }
 
 func GetClient(id string) (cli Client, err error) {
-	err = db.Where("id=?", id).First(&cli).Error
+	err = db.Where("client_id=?", id).First(&cli).Error
 	if err != nil {
 		logger.Errorf("GetClient(%s) Error: %s", id, err)
 	}

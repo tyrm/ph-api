@@ -18,7 +18,6 @@ type User struct {
 	DeletedAt *time.Time `json:"-" sql:"index"`
 }
 
-// GetID client id
 func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
@@ -36,6 +35,18 @@ func GetUserByUsername(username string) (user User, err error) {
 	return
 }
 
+func GetUsersPage(count int, page int) (users []User, err error) {
+	offset := count * page;
+	err = db.Limit(count).Offset(offset).Find(&users).Error
+
+	return
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
 func SetUser(usr User) (user User, err error) {
 	// Hash password if not already a bcrypt hash
 	reBCrypt, err := regexp.Compile(`^\$2[ayb]\$.{56}$`)
@@ -50,6 +61,8 @@ func SetUser(usr User) (user User, err error) {
 		logger.Errorf("Error creating user %s: %s", usr.Username, err)
 	}
 
+	user = usr
+
 	return
 }
 
@@ -60,7 +73,15 @@ func UserCount() int64 {
 	return count
 }
 
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+func UserExists(username string) (exists bool, err error) {
+	var count int64
+	err = db.Model(&User{}).Where("lower(username) = lower(?)", username).Count(&count).Error
+
+	if count > 0 {
+		exists = true
+	} else {
+		exists = false
+	}
+
+	return
 }

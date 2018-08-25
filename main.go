@@ -57,7 +57,9 @@ func main() {
 	rApi := r.PathPrefix("/api").Subrouter()
 	rApi.Use(oauth.ProtectMiddleware) // Require Valid Bearer
 	rApi.HandleFunc("/meow", web.HandleMeow)
-	rApi.HandleFunc("/user/{username}", web.HandleGetUser).Methods("GET")
+	rApi.HandleFunc("/users", web.HandleGetUserList).Methods("GET")
+	rApi.HandleFunc("/users", web.HandlePostUser).Methods("POST")
+	rApi.HandleFunc("/users/{username}", web.HandleGetUser).Methods("GET")
 
 	// Catchall for API Router so we throw 403 for all requests to api without valid token to prevent scans
 	rApi.PathPrefix("/").HandlerFunc(web.HandleNotImplemented)
