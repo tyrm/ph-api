@@ -4,18 +4,19 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/google/jsonapi"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID        uint       `json:"id" gorm:"primary_key"`
+	ID        uint       `jsonapi:"attr,db_id" gorm:"primary_key"`
 
-	Username  string     `json:"username" gorm:"not null"`
-	Password  string     `json:"-"`
+	Username  string     `jsonapi:"primary,user" gorm:"not null"`
+	Password  string     `jsonapi:"attr,password" gorm:"not null"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"-" sql:"index"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 }
 
 func (u *User) CheckPassword(password string) bool {
@@ -45,6 +46,13 @@ func GetUsersPage(count int, page int) (users []User, err error) {
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+func (u *User) JSONAPIMeta() *jsonapi.Meta {
+	return &jsonapi.Meta{
+		"created_at": u.CreatedAt,
+		"updated_at": u.UpdatedAt,
+	}
 }
 
 func SetUser(usr User) (user User, err error) {

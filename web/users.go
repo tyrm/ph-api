@@ -1,12 +1,12 @@
 package web
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"../models"
+	"github.com/google/jsonapi"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
@@ -20,35 +20,34 @@ type UserRequestBody struct {
 	User UserRequest `json:"user"`
 }
 
-type UserPageResponse struct {
-	Users *[]models.User `json:"users"`
-}
-
-type UserResponse struct {
-	User *models.User `json:"user"`
-}
-
 func HandleGetUser(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
+	response.Header().Set("Content-Type", jsonapi.MediaType)
 	vars := mux.Vars(request)
-	user, error := models.GetUserByUsername(vars["username"])
+	user, err := models.GetUserByUsername(vars["username"])
 
-	if error == gorm.ErrRecordNotFound {
+	if err == gorm.ErrRecordNotFound {
+		logger.Errorf("%s", err)
 		MakeErrorResponse(response, 404, vars["messageId"], 0)
 		return
-	} else if error != nil {
-		MakeErrorResponse(response, 400, error.Error(), 0)
+	} else if err != nil {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, 400, err.Error(), 0)
 		return
 	}
 
-	b, _ := json.Marshal(&UserResponse{User: &user})
-	fmt.Fprintf(response, "%s", b)
+	// Build Response
+	user.Password = "" // Don't send password
+	if err := jsonapi.MarshalPayload(response, &user); err != nil {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
+		return
+	}
 
 	return
 }
 
 func HandleGetUserList(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
+	response.Header().Set("Content-Type", jsonapi.MediaType)
 	queries := request.URL.Query()
 
 	// Get Page Number
@@ -84,56 +83,65 @@ func HandleGetUserList(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(&UserPageResponse{Users: &users})
-	fmt.Fprintf(response, "%s", b)
+	// Format
+	var userList []interface{}
+	for _, aUser := range(users) {
+		aUser.Password = "" // Don't send password
+		userList = append(userList, &aUser)
+	}
+
+	// Build Response
+	if err := jsonapi.MarshalPayload(response, userList); err != nil {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
+		return
+	}
 
 	return
 }
 
 func HandlePostUser(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
+	response.Header().Set("Content-Type", jsonapi.MediaType)
 
 	// Decode JSON
-	var userRequest UserRequestBody
-	decoder := json.NewDecoder(request.Body)
-	err := decoder.Decode(&userRequest)
-	if err != nil {
+	user := new(models.User)
+	if err := jsonapi.UnmarshalPayload(request.Body, user); err != nil {
 		MakeErrorResponse(response, http.StatusBadRequest, err.Error(), 1)
 		return
 	}
 
 	// Validate
-	if userRequest.User.Username == "" {
+	if user.Username == "" {
 		MakeErrorResponse(response, http.StatusUnprocessableEntity, "username", 2201)
 		return
 	}
-	if userRequest.User.Password == "" {
+	if user.Password == "" {
 		MakeErrorResponse(response, http.StatusUnprocessableEntity, "password", 2201)
 		return
 	}
 
-	exists, err := models.UserExists(userRequest.User.Username)
+	exists, err := models.UserExists(user.Username)
 	if err != nil {
 		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
 		return
 	}
 	if exists {
-		MakeErrorResponse(response, http.StatusConflict, fmt.Sprintf("User '%s' already exists", userRequest.User.Username), 0)
+		MakeErrorResponse(response, http.StatusConflict, fmt.Sprintf("User '%s' already exists", user.Username), 0)
 		return
 	}
 
 	// Add user to DB
-	newUser, err := models.SetUser(models.User{
-		Username: userRequest.User.Username,
-		Password: userRequest.User.Password,
-	})
+	newUser, err := models.SetUser(*user)
 	if err != nil {
 		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
 		return
+	}/**/
+
+	// Build Response
+	newUser.Password = ""
+	if err := jsonapi.MarshalPayload(response, &newUser); err != nil {
+		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
+		return
 	}
-
-	b, _ := json.Marshal(&UserResponse{User: &newUser})
-	fmt.Fprintf(response, "%s", b)
-
 	return
 }
