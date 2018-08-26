@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"./geoip"
 	"./models"
 	"./oauth"
 	"./web"
@@ -27,6 +28,9 @@ func main() {
 	// Connect DB
 	models.InitDB(config.DBEngine)
 	defer models.CloseDB()
+
+	// Init GeoIP
+	geoip.Init()
 
 	// Create Top Router
 	r := mux.NewRouter()
@@ -60,6 +64,7 @@ func main() {
 	rApi.HandleFunc("/clients", web.HandleGetClientList).Methods("GET")
 	rApi.HandleFunc("/clients/{client}", web.HandleGetClient).Methods("GET")
 	rApi.HandleFunc("/clients/{client}/user", web.HandleGetClientUser).Methods("GET")
+	rApi.HandleFunc("/geoip/{addr}", web.HandleGetGeoIPCity).Methods("GET")
 	rApi.HandleFunc("/users", web.HandleGetUserList).Methods("GET")
 	rApi.HandleFunc("/users", web.HandlePostUser).Methods("POST")
 	rApi.HandleFunc("/users/{username}", web.HandleGetUser).Methods("GET")
