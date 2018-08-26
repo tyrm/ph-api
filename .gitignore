@@ -1,2 +1,5 @@
 puphaus-api
 puphaus-api.exe
+
+data/*
+!data/.gitkeep
