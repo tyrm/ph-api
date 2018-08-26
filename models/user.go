@@ -32,7 +32,7 @@ func GetUser(id int) (user User, err error) {
 }
 
 func GetUserByUsername(username string) (user User, err error) {
-	err = db.Where("username=?", username).First(&user).Error
+	err = db.Where("lower(username) = lower(?)", username).First(&user).Error
 
 	return
 }
