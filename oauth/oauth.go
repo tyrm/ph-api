@@ -41,7 +41,7 @@ func InitOath(reddisAddr string) {
 			Name:   "Test Client",
 			Secret: "22222222",
 			Domain: "http://localhost:9094",
-			User: usr,
+			User: &usr,
 		})
 
 		models.SetClient(&models.Client{
@@ -49,7 +49,7 @@ func InitOath(reddisAddr string) {
 			Name:   "Postman",
 			Secret: "postman",
 			Domain: "https://www.getpostman.com/oauth2/callback",
-			User: usr,
+			User: &usr,
 		})
 
 	}
