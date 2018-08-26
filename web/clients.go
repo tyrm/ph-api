@@ -33,6 +33,29 @@ func HandleGetClient(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func HandleGetClientUser(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-Type", jsonapi.MediaType)
+	vars := mux.Vars(request)
+	client, err := models.GetClient(vars["client"])
+
+	if err == gorm.ErrRecordNotFound {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, 404, vars["messageId"], 0)
+		return
+	} else if err != nil {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, 400, err.Error(), 0)
+		return
+	}
+
+	user := *client.User
+	if err := jsonapi.MarshalPayload(response, &user); err != nil {
+		logger.Errorf("%s", err)
+		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
+		return
+	}
+}
+
 func HandleGetClientList(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", jsonapi.MediaType)
 	queries := request.URL.Query()

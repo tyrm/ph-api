@@ -59,6 +59,7 @@ func main() {
 	rApi.HandleFunc("/meow", web.HandleMeow)
 	rApi.HandleFunc("/clients", web.HandleGetClientList).Methods("GET")
 	rApi.HandleFunc("/clients/{client}", web.HandleGetClient).Methods("GET")
+	rApi.HandleFunc("/clients/{client}/user", web.HandleGetClientUser).Methods("GET")
 	rApi.HandleFunc("/users", web.HandleGetUserList).Methods("GET")
 	rApi.HandleFunc("/users", web.HandlePostUser).Methods("POST")
 	rApi.HandleFunc("/users/{username}", web.HandleGetUser).Methods("GET")
