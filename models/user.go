@@ -12,7 +12,8 @@ type User struct {
 	ID        uint       `jsonapi:"attr,db_id" gorm:"primary_key"`
 
 	Username  string     `jsonapi:"primary,user" gorm:"not null"`
-	Password  string     `jsonapi:"attr,password" gorm:"not null"`
+	Password  string     `jsonapi:"attr,password,omitempty" gorm:"-"`
+	PasswordHash  string `gorm:"not null"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -20,7 +21,7 @@ type User struct {
 }
 
 func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
 	return err == nil
 }
 
@@ -60,8 +61,10 @@ func SetUser(usr User) (user User, err error) {
 	reBCrypt, err := regexp.Compile(`^\$2[ayb]\$.{56}$`)
 	if err != nil {return}
 
-	if !reBCrypt.MatchString(usr.Password) {
-		usr.Password, _ = hashPassword(usr.Password)
+	if reBCrypt.MatchString(usr.Password) {
+		usr.PasswordHash = usr.Password
+	} else {
+		usr.PasswordHash, _ = hashPassword(usr.Password)
 	}
 
 	err = db.Create(&usr).Error

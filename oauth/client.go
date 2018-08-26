@@ -43,7 +43,7 @@ func (cs *ClientStore) Set(id string, cli oauth2.ClientInfo) (err error) {
 		ClientID:    id,
 		Secret: cli.GetSecret(),
 		Domain: cli.GetDomain(),
-		User: usr,
+		User: &usr,
 	})
 
 	return

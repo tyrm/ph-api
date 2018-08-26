@@ -57,6 +57,8 @@ func main() {
 	rApi := r.PathPrefix("/api").Subrouter()
 	rApi.Use(oauth.ProtectMiddleware) // Require Valid Bearer
 	rApi.HandleFunc("/meow", web.HandleMeow)
+	rApi.HandleFunc("/clients", web.HandleGetClientList).Methods("GET")
+	rApi.HandleFunc("/clients/{client}", web.HandleGetClient).Methods("GET")
 	rApi.HandleFunc("/users", web.HandleGetUserList).Methods("GET")
 	rApi.HandleFunc("/users", web.HandlePostUser).Methods("POST")
 	rApi.HandleFunc("/users/{username}", web.HandleGetUser).Methods("GET")

@@ -11,15 +11,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type UserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type UserRequestBody struct {
-	User UserRequest `json:"user"`
-}
-
 func HandleGetUser(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", jsonapi.MediaType)
 	vars := mux.Vars(request)
@@ -52,7 +43,7 @@ func HandleGetUserList(response http.ResponseWriter, request *http.Request) {
 
 	// Get Page Number
 	var page = 0
-	queryPage, hasPage := queries["page"]
+	queryPage, hasPage := queries["page[number]"]
 	if hasPage {
 		queryPageInt, err := strconv.Atoi(queryPage[0])
 		if err != nil || queryPageInt < 1 {
@@ -65,7 +56,7 @@ func HandleGetUserList(response http.ResponseWriter, request *http.Request) {
 
 	// Get Count Number
 	var count = 100
-	queryCount, hasCount := queries["count"]
+	queryCount, hasCount := queries["page[size]"]
 	if hasCount {
 		queryCountInt, err := strconv.Atoi(queryCount[0])
 		if err != nil || queryCountInt < 1 {
@@ -83,11 +74,16 @@ func HandleGetUserList(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if len(users) == 0 {
+		MakeErrorResponse(response, http.StatusNotFound, fmt.Sprintf("page %s", queryPage[0]), 0)
+		return
+	}
+
 	// Format
 	var userList []interface{}
 	for _, aUser := range(users) {
-		aUser.Password = "" // Don't send password
-		userList = append(userList, &aUser)
+		newObj := aUser
+		userList = append(userList, &newObj)
 	}
 
 	// Build Response
@@ -135,10 +131,9 @@ func HandlePostUser(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
 		return
-	}/**/
+	}
 
 	// Build Response
-	newUser.Password = ""
 	if err := jsonapi.MarshalPayload(response, &newUser); err != nil {
 		MakeErrorResponse(response, http.StatusInternalServerError, err.Error(), 0)
 		return

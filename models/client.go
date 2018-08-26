@@ -3,21 +3,23 @@ package models
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/jsonapi"
 )
 
 type Client struct {
-	ID     uint          `json:"id" gorm:"primary_key"`
-	Name   string        `json:"name"`
+	ID     uint          `gorm:"primary_key"`
+	Name   string        `jsonapi:"attr,name"`
 
-	ClientID string      `json:"access" gorm:"not null;unique"`
-	Secret   string      `json:"secret"`
-	Domain   string      `json:"domain"`
-	User     User        `json:"user"`
-	UserID   int         `json:"-"`
+	ClientID string      `jsonapi:"primary,client" gorm:"not null;unique"`
+	Secret   string      `jsonapi:"attr,secret"`
+	Domain   string      `jsonapi:"attr,domain"`
+	User     *User        `jsonapi:"relation,user"`
+	UserID   int
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"-" sql:"index"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 }
 
 // GetID client id
@@ -47,6 +49,20 @@ func GetClient(id string) (cli Client, err error) {
 	}
 
 	return
+}
+
+func GetClientPage(count int, page int) (clients []Client, err error) {
+	offset := count * page;
+	err = db.Preload("User").Limit(count).Offset(offset).Find(&clients).Error
+
+	return
+}
+
+func (c *Client) JSONAPIMeta() *jsonapi.Meta {
+	return &jsonapi.Meta{
+		"created_at": c.CreatedAt,
+		"updated_at": c.UpdatedAt,
+	}
 }
 
 func SetClient(cli *Client) (err error) {
